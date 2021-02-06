@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1041833621238",
+    "project_id": "singular-arcana-304003",
+    "storage_bucket": "singular-arcana-304003.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1041833621238:android:1a884f0aa69a5be2f75ed7",
+        "android_client_info": {
+          "package_name": "com.teamsydney.rbc_mobileapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1041833621238-40ebt4ibdufuntibeh6t6sbbf7hvnq91.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.teamsydney.rbc_mobileapp",
+            "certificate_hash": "22cf01c9e6e13ebec793252083520fc4143801f3"
+          }
+        },
+        {
+          "client_id": "1041833621238-5abh0msqv5mvmqljmgjuiuf3n15rmfh2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDno2Rc5N5prA5mv62AXI2FNvuF-ReopY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1041833621238-5abh0msqv5mvmqljmgjuiuf3n15rmfh2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1041833621238-c14i5eqoef3gdplbptdp0jka2s00b46r.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.t"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

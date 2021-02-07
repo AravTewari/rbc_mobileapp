@@ -37,6 +37,7 @@ dev_dependencies:
   firebase_core: ^0.5.3
   firebase_auth: ^0.18.4+1
   firebase_analytics: ^5.0.2
+  firebase_messaging: "^7.0.3"
   
   # Signin Plugins
   google_sign_in: ^4.5.9

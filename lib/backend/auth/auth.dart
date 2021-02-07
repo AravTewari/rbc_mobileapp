@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:rbc_mobileapp/backend/models/CustomGroup.dart';
 import 'package:rbc_mobileapp/backend/models/CustomUser.dart';
 import 'package:http/http.dart' as http;
 
@@ -36,13 +38,42 @@ class Auth {
   }
 
   static Future<CustomUser> getUser(User user) async {
+    FirebaseMessaging messaging = FirebaseMessaging();
     var url = "https://singular-arcana-304003.uc.r.appspot.com/api/clients/";
     http.Response res = await http.post(url,
-        body: jsonEncode({"uid": user.uid, "email": user.email}));
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "uid": user.uid,
+          "email": user.email,
+          "profileURL": user.photoURL,
+          "registrationToken": await messaging.getToken()
+        }));
 
     dynamic body = jsonDecode(res.body);
+    // print(body);
 
-    CustomUser cu = new CustomUser(body["uid"], user);
+    CustomUser cu = new CustomUser(
+        body["client_id"], null, user.photoURL, user.email, user);
+
+    var findGroupUrl =
+        "https://singular-arcana-304003.uc.r.appspot.com/api/groups/clientgroups/${user.uid}";
+    http.Response rez = await http.get(findGroupUrl);
+    dynamic json = jsonDecode(rez.body);
+    // print(json);
+    if (json["GroupMembers"] != null) {
+      List<dynamic> memRaw = json["GroupMembers"];
+      List<CustomUser> memParsed = [];
+      memRaw.forEach((m) {
+        memParsed.add(new CustomUser(m["Client"]["client_id"], null,
+            m["Client"]["profileUrl"], m["Client"]["email"], null));
+      });
+
+      CustomGroup g =
+          new CustomGroup(json["group_id"], json["name"], memParsed);
+      cu.setGroup(g);
+    }
+
+    print(cu.toString());
     return cu;
   }
 

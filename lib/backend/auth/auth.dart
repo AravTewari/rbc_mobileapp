@@ -65,7 +65,7 @@ class Auth {
       List<CustomUser> memParsed = [];
       memRaw.forEach((m) {
         memParsed.add(new CustomUser(m["Client"]["client_id"], null,
-            m["Client"]["profileUrl"], m["Client"]["email"], null));
+            m["Client"]["profileURL"], m["Client"]["email"], null));
       });
 
       CustomGroup g =

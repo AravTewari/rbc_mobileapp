@@ -123,9 +123,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                     primary: Theme.of(context).primaryColor,
                     textStyle: Theme.of(context).textTheme.headline6),
                 onPressed: () {
-                  widget.plaidLink
-                      .open()
-                      .then((_) => {widget.finishedCallback()});
+                  widget.plaidLink.open();
+                  widget.finishedCallback();
                 },
                 icon: Icon(Icons.arrow_forward),
                 label: Text("Connect your Bank")))

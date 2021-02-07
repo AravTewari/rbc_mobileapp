@@ -60,6 +60,12 @@ class App extends StatelessWidget {
                           color: ThemeColors.black,
                           fontSize: 36,
                           fontWeight: FontWeight.bold),
+                      headline2:
+                          TextStyle(color: ThemeColors.white, fontSize: 20),
+                      headline3: TextStyle(
+                          color: ThemeColors.black,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold),
                       headline5:
                           TextStyle(color: ThemeColors.black, fontSize: 16),
                       headline6:
@@ -145,17 +151,15 @@ class _RootState extends State<Root> {
     Auth.signInWithGoogle().then((res) => {
           setState(() {
             this.isNewUser = res.additionalUserInfo.isNewUser;
-            status = AuthStatus.LOGGED_IN;
           })
         });
   }
 
-  void logoutCallback() {
-    Auth.signOutGoogle().then((v) => {
-          setState(() {
-            status = AuthStatus.NOT_LOGGED_IN;
-          })
-        });
+  void logoutCallback() async {
+    await Auth.signOutGoogle();
+    setState(() {
+      status = AuthStatus.NOT_LOGGED_IN;
+    });
   }
 
   Future<void> setAnalyticsScreen(String screenName) async {

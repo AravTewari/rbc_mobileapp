@@ -59,19 +59,29 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> groupFinished(String name, List<String> emails) async {
+    setState(() {
+      page = ExpensesPage(
+          user: widget.user,
+          plaidLink: widget.plaidLink,
+          finishedCallback: linkFinished,
+          setAnalyticsScreen: widget.setAnalyticsScreen);
+    });
+
     var groupUrl =
         "https://singular-arcana-304003.uc.r.appspot.com/api/groups/";
-    await http.post(groupUrl,
+    http.Response groupRes = await http.post(groupUrl,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(
             {"name": name, "creator_id": widget.user.uid, "disabled": false}));
 
     for (var email in emails) {
       var memberUrl =
-          "https://singular-arcana-304003.uc.r.appspot.com/api/groups/";
+          "https://singular-arcana-304003.uc.r.appspot.com/api/groupmembers/";
+      dynamic groupBody = jsonDecode(groupRes.body);
       await http.post(memberUrl,
           headers: {"Content-Type": "application/json"},
-          body: jsonEncode({"email": email}));
+          body:
+              jsonEncode({"group_id": groupBody["group_id"], "email": email}));
     }
 
     var findGroupUrl =
@@ -88,14 +98,6 @@ class _HomePageState extends State<HomePage> {
 
     CustomGroup g = new CustomGroup(body["group_id"], body["name"], memParsed);
     widget.user.setGroup(g);
-
-    setState(() {
-      page = ExpensesPage(
-          user: widget.user,
-          plaidLink: widget.plaidLink,
-          finishedCallback: linkFinished,
-          setAnalyticsScreen: widget.setAnalyticsScreen);
-    });
   }
 
   void linkFinished() {

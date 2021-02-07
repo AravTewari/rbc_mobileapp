@@ -29,8 +29,9 @@ class _HomePageState extends State<LoginPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Login to\nappname.online",
+        Text("Login to\nRentTogether.online",
             style: Theme.of(context).textTheme.headline1),
+        // Image.network("https://i.imgur.com/c7yjrRb.png"),
         SizedBox(
             width: MediaQuery.of(context).size.width,
             height: 50,

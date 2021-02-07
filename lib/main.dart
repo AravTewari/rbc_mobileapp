@@ -13,7 +13,6 @@ import 'package:rbc_mobileapp/themes/colors.dart';
 import 'package:rbc_mobileapp/backend/auth/auth.dart';
 
 import 'package:rbc_mobileapp/pages/login.dart';
-import 'package:rbc_mobileapp/pages/expenseBoard.dart';
 
 import 'backend/auth/plaid.dart';
 

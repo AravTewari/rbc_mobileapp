@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:plaid_flutter/plaid_flutter.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rbc_mobileapp/backend/models/CustomUser.dart';
+import 'package:rbc_mobileapp/pages/home.dart';
 
 import 'package:rbc_mobileapp/themes/colors.dart';
 import 'package:rbc_mobileapp/backend/auth/auth.dart';
 
 import 'package:rbc_mobileapp/pages/login.dart';
-import 'package:rbc_mobileapp/pages/home.dart';
+import 'package:rbc_mobileapp/pages/expenseBoard.dart';
+
+import 'backend/auth/plaid.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -99,15 +104,18 @@ class Root extends StatefulWidget {
 
 class _RootState extends State<Root> {
   FirebaseAuth auth = FirebaseAuth.instance;
+  PlaidLink plaidLink;
 
   AuthStatus status = AuthStatus.NOT_DETERMINED;
   Widget page;
 
-  User user;
+  CustomUser user;
+  bool isNewUser;
 
   @override
   void initState() {
     super.initState();
+    this.isNewUser = false;
 
     auth.authStateChanges().listen((User user) {
       if (user == null) {
@@ -115,9 +123,15 @@ class _RootState extends State<Root> {
           status = AuthStatus.NOT_LOGGED_IN;
         });
       } else {
-        setState(() {
-          status = AuthStatus.LOGGED_IN;
-          this.user = user;
+        Plaid.linkPlaidAccount(user).then((link) {
+          this.plaidLink = link;
+        });
+
+        Auth.getUser(user).then((customUser) {
+          setState(() {
+            status = AuthStatus.LOGGED_IN;
+            this.user = customUser;
+          });
         });
       }
     });
@@ -131,9 +145,9 @@ class _RootState extends State<Root> {
   }
 
   void loginCallback() {
-    Auth.signInWithGoogle().then((user) => {
+    Auth.signInWithGoogle().then((res) => {
           setState(() {
-            this.user = user;
+            this.isNewUser = res.additionalUserInfo.isNewUser;
             status = AuthStatus.LOGGED_IN;
           })
         });
@@ -151,7 +165,7 @@ class _RootState extends State<Root> {
     await widget.analytics.setCurrentScreen(screenName: screenName);
   }
 
-  Future<void> setAnalyticsUser(User user) async {
+  Future<void> setAnalyticsUser(CustomUser user) async {
     await widget.analytics.setUserId(user.uid);
   }
 
@@ -172,8 +186,8 @@ class _RootState extends State<Root> {
       case AuthStatus.NOT_LOGGED_IN:
         setState(() {
           page = LoginPage(
-            setAnalyticsScreen: setAnalyticsScreen,
-            loginCallback: loginCallback,
+            setAnalyticsScreen: this.setAnalyticsScreen,
+            loginCallback: this.loginCallback,
           );
         });
         break;
@@ -181,17 +195,18 @@ class _RootState extends State<Root> {
         setAnalyticsUser(this.user);
         setState(() {
           page = HomePage(
-            setAnalyticsScreen: setAnalyticsScreen,
+            setAnalyticsScreen: this.setAnalyticsScreen,
             user: this.user,
-            logoutCallback: logoutCallback,
+            plaidLink: this.plaidLink,
+            logoutCallback: this.logoutCallback,
           );
         });
         break;
       default:
         setState(() {
           page = LoginPage(
-            setAnalyticsScreen: setAnalyticsScreen,
-            loginCallback: loginCallback,
+            setAnalyticsScreen: this.setAnalyticsScreen,
+            loginCallback: this.loginCallback,
           );
         });
         break;

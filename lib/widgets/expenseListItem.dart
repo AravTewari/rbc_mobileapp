@@ -10,7 +10,7 @@ class ExpenseListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Text(name, style: Theme.of(context).textTheme.headline5),
+      Text("$name", style: Theme.of(context).textTheme.headline5),
       IconButton(
           padding: EdgeInsets.all(16),
           icon: Icon(Icons.close),

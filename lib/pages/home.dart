@@ -1,7 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:plaid_flutter/plaid_flutter.dart';
+import 'package:rbc_mobileapp/backend/models/CustomGroup.dart';
 import 'package:rbc_mobileapp/backend/models/CustomUser.dart';
 import 'package:rbc_mobileapp/pages/expenseBoard.dart';
+import 'package:rbc_mobileapp/pages/groups.dart';
+import 'package:http/http.dart' as http;
+import 'package:rbc_mobileapp/pages/overview.dart';
 
 class HomePage extends StatefulWidget {
   HomePage(
@@ -9,10 +15,12 @@ class HomePage extends StatefulWidget {
       this.user,
       this.logoutCallback,
       this.setAnalyticsScreen,
-      this.plaidLink})
+      this.plaidLink,
+      this.isNewuser})
       : super(key: key);
 
   final CustomUser user;
+  final bool isNewuser;
   final PlaidLink plaidLink;
   final VoidCallback logoutCallback;
   final Function(String screenName) setAnalyticsScreen;
@@ -22,15 +30,79 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  int onBoardProgress = 0;
+  Widget page = Container();
+
   @override
   void initState() {
     super.initState();
     widget.setAnalyticsScreen("HomePage");
+
+    if (widget.user.group == null) {
+      setState(() {
+        page = GroupsPage(
+            user: widget.user,
+            finishCallback: groupFinished,
+            setAnalyticsScreen: widget.setAnalyticsScreen);
+      });
+    } else {
+      setState(() {
+        page = OverviewPage(
+            user: widget.user, setAnalyticsScreen: widget.setAnalyticsScreen);
+      });
+    }
   }
 
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future<void> groupFinished(String name, List<String> emails) async {
+    var groupUrl =
+        "https://singular-arcana-304003.uc.r.appspot.com/api/groups/";
+    await http.post(groupUrl,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(
+            {"name": name, "creator_id": widget.user.uid, "disabled": false}));
+
+    for (var email in emails) {
+      var memberUrl =
+          "https://singular-arcana-304003.uc.r.appspot.com/api/groups/";
+      await http.post(memberUrl,
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({"email": email}));
+    }
+
+    var findGroupUrl =
+        "https://singular-arcana-304003.uc.r.appspot.com/api/groups/ownergroup/${widget.user.uid}";
+    http.Response res = await http.get(findGroupUrl);
+
+    dynamic body = jsonDecode(res.body);
+    List<dynamic> memRaw = body["GroupMembers"];
+    List<CustomUser> memParsed = [];
+    memRaw.forEach((m) {
+      memParsed.add(new CustomUser(m["Client"]["client_id"], null,
+          m["Client"]["profileUrl"], m["Client"]["email"], null));
+    });
+
+    CustomGroup g = new CustomGroup(body["group_id"], body["name"], memParsed);
+    widget.user.setGroup(g);
+
+    setState(() {
+      page = ExpensesPage(
+          user: widget.user,
+          plaidLink: widget.plaidLink,
+          finishedCallback: linkFinished,
+          setAnalyticsScreen: widget.setAnalyticsScreen);
+    });
+  }
+
+  void linkFinished() {
+    setState(() {
+      page = OverviewPage(
+          user: widget.user, setAnalyticsScreen: widget.setAnalyticsScreen);
+    });
   }
 
   @override
@@ -47,7 +119,7 @@ class _HomePageState extends State<HomePage> {
               Container(
                   margin: EdgeInsets.only(right: 10),
                   child: InkWell(
-                      onTap: widget.logoutCallback,
+                      onLongPress: widget.logoutCallback,
                       child: CircleAvatar(
                         backgroundImage:
                             NetworkImage(widget.user.user.photoURL),
@@ -59,12 +131,7 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        Expanded(
-            child: ExpensesPage(
-                user: widget.user,
-                setAnalyticsScreen: widget.setAnalyticsScreen,
-                plaidLink: widget.plaidLink,
-                logoutCallback: widget.logoutCallback)),
+        Expanded(child: this.page),
       ],
     );
   }

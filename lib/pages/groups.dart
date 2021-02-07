@@ -1,43 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:rbc_mobileapp/backend/models/CustomUser.dart';
-import 'package:plaid_flutter/plaid_flutter.dart';
-
 import 'package:rbc_mobileapp/widgets/expenseListItem.dart';
 
-class ExpensesPage extends StatefulWidget {
-  ExpensesPage({
+class GroupsPage extends StatefulWidget {
+  GroupsPage({
     Key key,
     this.user,
     this.setAnalyticsScreen,
-    this.plaidLink,
-    this.finishedCallback,
+    this.finishCallback,
   }) : super(key: key);
 
   final CustomUser user;
-  final PlaidLink plaidLink;
-  final VoidCallback finishedCallback;
-  final Function(String screenName) setAnalyticsScreen;
+  final Function(String, List<String>) finishCallback;
+  final Function(String) setAnalyticsScreen;
 
   @override
-  _ExpensesPageState createState() => _ExpensesPageState();
+  _GroupsPageState createState() => _GroupsPageState();
 }
 
-class _ExpensesPageState extends State<ExpensesPage> {
-  List<ExpenseListItem> customExpenses = [];
-  TextEditingController _expenseTextController = new TextEditingController();
+class _GroupsPageState extends State<GroupsPage> {
+  List<ExpenseListItem> invitees = [];
+  TextEditingController _groupNameController = new TextEditingController();
+  TextEditingController _groupInvitesController = new TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    widget.setAnalyticsScreen("ExpensesPage");
-
-    customExpenses.addAll([
-      new ExpenseListItem(name: "Water", onRemovePressed: removeExpense),
-      new ExpenseListItem(name: "Electricity", onRemovePressed: removeExpense),
-      new ExpenseListItem(name: "Internet", onRemovePressed: removeExpense),
-      new ExpenseListItem(
-          name: "Heating & Cooling", onRemovePressed: removeExpense)
-    ]);
+    widget.setAnalyticsScreen("GroupsPage");
   }
 
   @override
@@ -45,29 +34,29 @@ class _ExpensesPageState extends State<ExpensesPage> {
     super.dispose();
   }
 
-  void addExpense() {
-    if (_expenseTextController.text == "" ||
-        customExpenses
+  void addInvite() {
+    if (_groupInvitesController.text == "" ||
+        invitees
             .where((item) =>
                 item.name.toLowerCase() ==
-                _expenseTextController.text.toLowerCase())
+                _groupInvitesController.text.toLowerCase())
             .isNotEmpty) return;
 
-    List<ExpenseListItem> tmpExp = customExpenses;
+    List<ExpenseListItem> tmpExp = invitees;
     tmpExp.add(new ExpenseListItem(
-        name: _expenseTextController.text, onRemovePressed: removeExpense));
+        name: _groupInvitesController.text, onRemovePressed: removeInvite));
     setState(() {
-      customExpenses = tmpExp;
+      invitees = tmpExp;
     });
 
-    _expenseTextController.clear();
+    _groupInvitesController.clear();
   }
 
-  void removeExpense(String name) {
-    List<ExpenseListItem> tmpExp = customExpenses;
+  void removeInvite(String name) {
+    List<ExpenseListItem> tmpExp = invitees;
     tmpExp.removeWhere((item) => item.name == name);
     setState(() {
-      customExpenses = tmpExp;
+      invitees = tmpExp;
     });
   }
 
@@ -76,7 +65,24 @@ class _ExpensesPageState extends State<ExpensesPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Add Bills", style: Theme.of(context).textTheme.headline1),
+        Text("Create Group", style: Theme.of(context).textTheme.headline1),
+        Container(
+            padding: EdgeInsets.only(left: 16, top: 4, right: 16, bottom: 4),
+            margin: EdgeInsets.only(bottom: 16, top: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+              color: Theme.of(context).canvasColor,
+            ),
+            child: TextField(
+              controller: _groupNameController,
+              style: Theme.of(context).textTheme.headline5,
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: "Group Name",
+                hintStyle: Theme.of(context).textTheme.headline5,
+                icon: Icon(Icons.create),
+              ),
+            )),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Expanded(
               child: Container(
@@ -88,13 +94,14 @@ class _ExpensesPageState extends State<ExpensesPage> {
                     color: Theme.of(context).canvasColor,
                   ),
                   child: TextField(
-                    controller: _expenseTextController,
+                    controller: _groupInvitesController,
+                    keyboardType: TextInputType.emailAddress,
                     style: Theme.of(context).textTheme.headline5,
                     decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: "Expense",
+                      hintText: "Invite Users",
                       hintStyle: Theme.of(context).textTheme.headline5,
-                      icon: Icon(Icons.create),
+                      icon: Icon(Icons.mail),
                     ),
                   ))),
           Container(
@@ -105,15 +112,15 @@ class _ExpensesPageState extends State<ExpensesPage> {
               ),
               child: IconButton(
                 icon: Icon(Icons.add),
-                onPressed: addExpense,
+                onPressed: addInvite,
                 padding: EdgeInsets.all(16),
                 color: Theme.of(context).backgroundColor,
               ))
         ]),
         Expanded(
             child: ListView.builder(
-                itemCount: this.customExpenses.length,
-                itemBuilder: (context, index) => this.customExpenses[index])),
+                itemCount: this.invitees.length,
+                itemBuilder: (context, index) => this.invitees[index])),
         Container(
             width: MediaQuery.of(context).size.width,
             height: 50,
@@ -123,12 +130,14 @@ class _ExpensesPageState extends State<ExpensesPage> {
                     primary: Theme.of(context).primaryColor,
                     textStyle: Theme.of(context).textTheme.headline6),
                 onPressed: () {
-                  widget.plaidLink
-                      .open()
-                      .then((_) => {widget.finishedCallback()});
+                  List<String> strInvites = [];
+                  invitees.forEach((inviteWidget) {
+                    strInvites.add(inviteWidget.name);
+                  });
+                  widget.finishCallback(_groupNameController.text, strInvites);
                 },
                 icon: Icon(Icons.arrow_forward),
-                label: Text("Connect your Bank")))
+                label: Text("Create Group")))
       ],
     );
   }

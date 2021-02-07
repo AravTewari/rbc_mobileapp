@@ -46,8 +46,6 @@ class App extends StatelessWidget {
     return FutureBuilder(
         future: Firebase.initializeApp(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return buildWaiting();
-
           if (snapshot.connectionState == ConnectionState.done) {
             return MaterialApp(
               title: 'RBC Challenge',
@@ -165,7 +163,7 @@ class _RootState extends State<Root> {
   }
 
   Future<void> setAnalyticsUser(CustomUser user) async {
-    await widget.analytics.setUserId(user.uid);
+    if (user != null) await widget.analytics.setUserId(user.uid);
   }
 
   Widget buildWaiting() {
@@ -196,6 +194,7 @@ class _RootState extends State<Root> {
           page = HomePage(
             setAnalyticsScreen: this.setAnalyticsScreen,
             user: this.user,
+            isNewuser: this.isNewUser,
             plaidLink: this.plaidLink,
             logoutCallback: this.logoutCallback,
           );
